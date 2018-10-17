@@ -36,11 +36,22 @@ let getShradIteratorParams = function (shrad_id) {
   return params;
 };
 
+let getShradIterator = function (shrad_id) {
+  return kinesis.getShardIterator(getShradIteratorParams(shrad_id))
+    .promise();
+};
+
+let getRecords = function (shrad_iter) {
+  return kinesis.getRecords(shrad_iter)
+    .promise();
+};
+
 let fetchRecordsForShrad = function (shradId) {
-  console.log('shrad id: ', shradId);
-  return kinesis.getShardIterator(getShradIteratorParams(shradId))
-    .promise()
+  return getShradIterator(shradId)
+    .then(getRecords)
     .then(data => {
+      console.log('shrad id: ', shradId);
+
       if (data && data.Records && data.Records.length > 0) {
           console.log("Total records in egress kinesis: ", data.Records.length);
         for (let i = 0; i < data.Records.length; i++) {
