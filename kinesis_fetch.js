@@ -7,6 +7,18 @@ let kinesis = new AWS.Kinesis({
   region: config.region
 });
 
+let getShrads = function () {
+  return kinesis.listShards({
+      StreamName: config.stream_name
+    })
+    .promise()
+    .then(data => {
+      if (data && data.Shards && data.Shards.length > 0) {
+        return data.Shards.map(curr => curr.ShardId);
+      }
+    });
+};
+
 let getShradIteratorParams = function (shrad_id) {
   let iterator_type = config.shrad_iterator_type;
   let params = {
@@ -25,35 +37,36 @@ let getShradIteratorParams = function (shrad_id) {
 };
 
 let fetchRecordsForShrad = function (shradId) {
-  kinesis.getShardIterator(getShradIteratorParams(shradId), (err, data) => {
-    if (!err) {
-      console.log('shrad iterator resp: ', data);
-      kinesis.getRecords(data, (err, data) => {
-        if (!err) {
-          console.log("========= get records =========");
-          if (data && data.Records && data.Records.length > 0) {
-              console.log("Total records in egress kinesis: ", data.Records.length);
-            for (let i = 0; i < data.Records.length; i++) {
-              let curr = data.Records[i];
+  console.log('shrad id: ', shradId);
+  return kinesis.getShardIterator(getShradIteratorParams(shradId))
+    .promise()
+    .then(data => {
+      if (data && data.Records && data.Records.length > 0) {
+          console.log("Total records in egress kinesis: ", data.Records.length);
+        for (let i = 0; i < data.Records.length; i++) {
+          let curr = data.Records[i];
   
-              console.log("\n\n+++++ Record: ", i+1, " ++++++");
-              console.log("PartitionKey: ", curr.PartitionKey);
-              console.log("ArrivalTime: ", curr.ApproximateArrivalTimestamp);
-              console.log("Data: ", curr.Data.toString('utf8'));
-            }
-          } else {
-            console.log("No records found!!!!");
-          }
-        } else {
-          console.log('error get records: ', err);
+          console.log("\n\n+++++ Record: ", i+1, " ++++++");
+          console.log("PartitionKey: ", curr.PartitionKey);
+          console.log("ArrivalTime: ", curr.ApproximateArrivalTimestamp);
+          console.log("Data: ", curr.Data.toString('utf8'));
         }
-      });
-    } else {
-      console.log('get shrad iteratoor error ', err);
-    }
-  });
+      } else {
+        console.log("No records found!!!!");
+      } 
+    });
 };
 
-if (shrads && shrads.length > 0) {
-  shrads.forEach(fetchRecordsForShrad);
-}
+
+getShrads()
+  .then(shrad_ids => {
+    let promise_arr = shrad_ids.map(fetchRecordsForShrad);
+
+    return Promise.all(promise_arr);
+  })
+  .then(res => {
+    console.log('successfully completed fetch');
+  })
+  .catch(ex => {
+    console.log('error', ex);
+  });
