@@ -18,5 +18,8 @@
   "bugs": {
     "url": "https://github.com/bijoshtj/aws-utils/issues"
   },
-  "homepage": "https://github.com/bijoshtj/aws-utils#readme"
+  "homepage": "https://github.com/bijoshtj/aws-utils#readme",
+  "dependencies": {
+    "aws-sdk": "^2.336.0"
+  }
 }
