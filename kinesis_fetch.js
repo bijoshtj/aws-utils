@@ -1,16 +1,17 @@
 
 let AWS = require('aws-sdk');
+let config = require('./config/kinesis');
 
 var kinesis = new AWS.Kinesis({
-  region: 'us-west-2'
+  region: config.region
 });
 
 kinesis.getShardIterator({
-  ShardId: 'shardId-000000000001', /* required */
+  ShardId: config.shradId, /* required */
   //ShardIteratorType: 'TRIM_HORIZON', /* required */
-  ShardIteratorType: 'AT_TIMESTAMP', /* required */
-  StreamName: 'kinesis_stream_name', /* required */
-  Timestamp: '2018-10-08T14:10:24.197Z'
+  ShardIteratorType: config.shrad_iterator_type, /* required */
+  StreamName: config.stream_name, /* required */
+  Timestamp: config.from_time
 }, (err, data) => {
   if (!err) {
     console.log('shrad iterator resp: ', data);
