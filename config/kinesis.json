@@ -1,0 +1,7 @@
+{
+  "region": "us-west-2",
+  "stream_name": "streamName",
+  "shradId": "shrad1",
+  "shrad_iterator_type": "AT_TIMESTAMP",
+  "from_time": "2018-01-01T00:00:00.000Z"
+}
